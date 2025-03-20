@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from typing import List
-from models import Appointment
+from models import Appointment, NewAppointment
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -104,6 +104,15 @@ def edit_appointment(
 @router.get("/api/appointments/", response_model=List[Appointment])
 def api_get_all_appointments():
     return appointments
+
+@router.post("/api/appointments/", response_model=Appointment)
+def api_create_appointment(
+    appointment: NewAppointment,
+):
+    appointment_id = len(appointments) + 1
+    a = Appointment(id=appointment_id, **appointment.dict())
+    appointments.append(a)
+    return a
 
 @router.get("/api/appointments/{appointment_id}", response_model=Appointment)
 def api_get_appointment(appointment_id: int):

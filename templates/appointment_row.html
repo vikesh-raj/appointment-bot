@@ -6,11 +6,17 @@
     <td>{{ appointment.time }}</td>
     <td>{{ appointment.service }}</td>
     <td>
-        <form hx-post="/appointments/delete/{{ appointment.id }}"
+        <button class="btn btn-secondary btn-sm"
+            hx-get="/appointments/{{ appointment.id }}/edit"
             hx-target="closest tr"
-            hx-swap="outerHTML"
-            style="display:inline;">
-            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-        </form>
+            hx-swap="outerHTML">
+            Edit
+        </button>
+        <button class="btn btn-danger btn-sm"
+            hx-delete="/appointments/{{ appointment.id }}"
+            hx-target="closest tr"
+            hx-swap="delete">
+            Delete
+        </button>
     </td>
 </tr>

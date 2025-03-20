@@ -25,22 +25,7 @@
             </thead>
             <tbody>
                 {% for appointment in appointments %}
-                <tr>
-                    <td>{{ appointment.id }}</td>
-                    <td>{{ appointment.name }}</td>
-                    <td>{{ appointment.number }}</td>
-                    <td>{{ appointment.date }}</td>
-                    <td>{{ appointment.time }}</td>
-                    <td>{{ appointment.service }}</td>
-                    <td>
-                        <form hx-post="/appointments/delete/{{ appointment.id }}"
-                            hx-target="closest tr"
-                            hx-swap="delete"
-                            style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
-                    </td>
-                </tr>
+                    {% include "appointment_row.html" %}
                 {% endfor %}
             </tbody>
         </table>
