@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Appointment</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Create New Appointment</h1>
+        <form action="/appointments/" method="post" class="mt-3">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="number">Number</label>
+                <input type="tel" class="form-control" id="number" name="number" required>
+            </div>
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" class="form-control" id="date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="time">Time</label>
+                <input type="time" class="form-control" id="time" name="time" required>
+            </div>
+            <div class="form-group">
+                <label for="service">Service</label>
+                <input type="text" class="form-control" id="service" name="service" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Appointment</button>
+        </form>
+    </div>
+</body>
+</html>
