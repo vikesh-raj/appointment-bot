@@ -1,8 +1,11 @@
-from fastapi import APIRouter, HTTPException, Request, Form
+from fastapi import APIRouter, HTTPException, Request, Form, UploadFile, File
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse, PlainTextResponse
+from fastapi.responses import RedirectResponse, PlainTextResponse, FileResponse, JSONResponse
 from typing import List
 from models import Appointment, NewAppointment
+import os
+import tempfile
+from audio_llm import process_audio_appointment_request, generate_audio_response
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -136,6 +139,80 @@ def api_update_appointment(appointment_id: int, updated_appointment: Appointment
             appointments[index] = updated_appointment
             return updated_appointment
     raise HTTPException(status_code=404, detail="Appointment not found")
+
+# Audio LLM Endpoints
+
+@router.post("/api/audio/process")
+async def process_audio(audio: UploadFile = File(...)):
+    """
+    Process audio file to create appointment via Audio LLM.
+    Transcribes audio, extracts appointment details using LLM, and returns results.
+    """
+    # Create temp file for uploaded audio
+    with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(audio.filename)[1]) as temp_audio:
+        content = await audio.read()
+        temp_audio.write(content)
+        temp_audio_path = temp_audio.name
+    
+    try:
+        # Process the audio through the LLM pipeline
+        result = process_audio_appointment_request(temp_audio_path)
+        
+        # If all appointment details are present, create the appointment
+        details = result["appointment_details"]
+        if all(details.values()):
+            appointment_id = len(appointments) + 1
+            appointment = Appointment(
+                id=appointment_id,
+                name=details["name"],
+                number=details["number"],
+                date=details["date"],
+                time=details["time"],
+                service=details["service"]
+            )
+            appointments.append(appointment)
+            result["appointment_created"] = True
+            result["appointment_id"] = appointment_id
+        else:
+            result["appointment_created"] = False
+        
+        return JSONResponse(content=result)
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        # Clean up temp file
+        if os.path.exists(temp_audio_path):
+            os.remove(temp_audio_path)
+
+@router.post("/api/audio/tts")
+async def text_to_speech(text: str = Form(...)):
+    """
+    Convert text to speech and return audio file.
+    """
+    # Create temp file for generated audio
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
+        temp_audio_path = temp_audio.name
+    
+    try:
+        # Generate audio from text
+        audio_path = generate_audio_response(text, temp_audio_path)
+        
+        return FileResponse(
+            audio_path,
+            media_type="audio/mpeg",
+            filename="response.mp3"
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/audio")
+def audio_interface(request: Request):
+    """
+    Render the audio LLM interface page.
+    """
+    return templates.TemplateResponse("audio_llm.html", {"request": request})
 
 @router.put("/api/appointments/{appointment_id}", response_model=Appointment)
 def api_update_appointment(appointment_id: int, updated_appointment: Appointment):
